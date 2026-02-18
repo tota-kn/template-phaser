@@ -15,7 +15,7 @@ export class Game extends Scene {
       .text(width / 2, height / 2, "Phaser 3 + Vite + TypeScript", {
         fontFamily: "Arial",
         fontSize: "32px",
-        color: "#ffffff",
+        color: "#1a1a2e",
       })
       .setOrigin(0.5);
 
@@ -23,7 +23,7 @@ export class Game extends Scene {
       .text(width / 2, height / 2 + 50, "タップ or クリックしてみてください", {
         fontFamily: "Arial",
         fontSize: "18px",
-        color: "#aaaaaa",
+        color: "#666666",
       })
       .setOrigin(0.5);
 
@@ -39,7 +39,7 @@ export class Game extends Scene {
       speed: { min: 50, max: 200 },
       scale: { start: 0.6, end: 0 },
       lifespan: { min: 400, max: 800 },
-      blendMode: "ADD",
+      blendMode: "NORMAL",
       tint: [0xff6b6b, 0xffd93d, 0x6bcb77, 0x4d96ff, 0xc084fc],
       emitting: false,
     });
