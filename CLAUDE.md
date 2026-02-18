@@ -11,7 +11,9 @@ Phaser 3 (v3.90) + TypeScript + Vite によるゲーム開発テンプレート�
 - **パッケージマネージャー:** pnpm (v9.15.1)
 - **開発サーバー起動:** `pnpm dev` (ポート8080)
 - **ビルド:** `pnpm build` (tsc型チェック + vite build)
+- **ビルド+デプロイ:** `pnpm deploy` (build → wrangler deploy)
 - **プレビュー:** `pnpm preview`
+- **リンター・テスト:** 未設定
 
 ## アーキテクチャ
 
@@ -19,16 +21,27 @@ Phaser 3 (v3.90) + TypeScript + Vite によるゲーム開発テンプレート�
 
 Boot → Preloader → Game の3段階で初期化される Phaser シーンベースアーキテクチャ。
 
-- `src/main.ts` — エントリーポイント。Phaser.Game インスタンス生成、設定定義
+- `src/main.ts` — エントリーポイント。Phaser.Game インスタンス生成、設定定義。新しいシーンは `config.scene` 配列に追加する
 - `src/scenes/Boot.ts` — 最小限のアセット読み込み後 Preloader へ遷移
-- `src/scenes/Preloader.ts` — メインアセット読み込み（プログレスバーUI付き）、完了後 Game へ遷移
+- `src/scenes/Preloader.ts` — メインアセット読み込み（プログレスバーUI付き）、完了後 Game へ遷移。アセットの読み込みは `preload()` 内に追加する
 - `src/scenes/Game.ts` — メインゲームロジックの実装箇所
+
+### シーン追加時の規約
+
+- `Scene` を継承し、`constructor` で `super("シーン名")` で文字列キーを登録
+- `src/main.ts` の `config.scene` 配列にクラスを追加
+- シーン遷移は `this.scene.start("シーン名")` で行う
 
 ### ゲーム設定
 
 - 解像度: 800x600px、背景色: #1a1a2e
 - 物理エンジン: Arcade Physics (重力なし)
 - 親要素: `#game-container` (index.html)
+
+### TypeScript
+
+- strict モード有効（`noUnusedLocals`, `noUnusedParameters` 含む）
+- ターゲット: ES2020、モジュール: ESNext
 
 ### ビルド設定
 
@@ -38,9 +51,7 @@ Boot → Preloader → Game の3段階で初期化される Phaser シーンベ�
 
 ## デプロイ
 
-GitHub Actions (`.github/workflows/deploy.yml`) が main および claude/** ブランチへの push 時に自動ビルド・Cloudflare Workers デプロイを実行。
+GitHub Actions (`.github/workflows/deploy.yml`) が全ブランチへの push 時に自動ビルド・Cloudflare Workers デプロイを実行。
 
-- main ブランチ: `template-phaser.<account>.workers.dev` にデプロイ
-- 他ブランチ: `template-phaser-<ブランチ名>.<account>.workers.dev` にデプロイ（プレビュー用）
-- 設定ファイル: `wrangler.jsonc` (Workers Static Assets)
+- 設定ファイル: `wrangler.jsonc` (Workers Static Assets、SPA モード)
 - 必要な GitHub Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
