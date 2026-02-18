@@ -18,7 +18,7 @@ export class Game extends Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(width / 2, height / 2 + 50, "Game development ready!", {
+      .text(width / 2, height / 2 + 50, "Game development ready! hello", {
         fontFamily: "Arial",
         fontSize: "18px",
         color: "#aaaaaa",
