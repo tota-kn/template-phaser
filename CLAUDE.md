@@ -34,7 +34,8 @@ Boot → Preloader → Game の3段階で初期化される Phaser シーンベ�
 
 ### ゲーム設定
 
-- 解像度: 800x600px、背景色: #1a1a2e
+- 解像度: 1920x1080px（論理解像度）、背景色: #1a1a2e
+- スケール: `Scale.FIT` + `CENTER_BOTH`（アスペクト比維持でスマホ画面にフィット）
 - 物理エンジン: Arcade Physics (重力なし)
 - 親要素: `#game-container` (index.html)
 
