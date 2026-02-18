@@ -29,10 +29,12 @@ export class Game extends Scene {
 
     // フルスクリーンボタン
     const fsBtn = this.add
-      .text(width - 20, 20, "⛶", {
+      .text(width - 30, 30, "⛶", {
         fontFamily: "Arial",
-        fontSize: "48px",
+        fontSize: "72px",
         color: "#999999",
+        backgroundColor: "rgba(0,0,0,0.15)",
+        padding: { x: 16, y: 8 },
       })
       .setOrigin(1, 0)
       .setInteractive({ useHandCursor: true })
