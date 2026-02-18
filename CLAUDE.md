@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-Phaser 3 (v3.90) + TypeScript + Vite によるゲーム開発テンプレート。GitHub Pagesへの自動デプロイ対応。
+Phaser 3 (v3.90) + TypeScript + Vite によるゲーム開発テンプレート。Cloudflare Workers (Static Assets) への自動デプロイ対応。
 
 ## コマンド
 
@@ -34,8 +34,13 @@ Boot → Preloader → Game の3段階で初期化される Phaser シーンベ�
 
 - Vite で Phaser を別チャンク (`phaser.js`) に分離
 - Terser による2パスミニファイ
-- ベースパス: `/template-phaser/` (GitHub Pages用)
+- ベースパス: `/` (Cloudflare Workers用)
 
 ## デプロイ
 
-GitHub Actions (`.github/workflows/deploy.yml`) が main および claude/** ブランチへの push 時に自動ビルド・GitHub Pages デプロイを実行。
+GitHub Actions (`.github/workflows/deploy.yml`) が main および claude/** ブランチへの push 時に自動ビルド・Cloudflare Workers デプロイを実行。
+
+- main ブランチ: `template-phaser.<account>.workers.dev` にデプロイ
+- 他ブランチ: `template-phaser-<ブランチ名>.<account>.workers.dev` にデプロイ（プレビュー用）
+- 設定ファイル: `wrangler.jsonc` (Workers Static Assets)
+- 必要な GitHub Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
