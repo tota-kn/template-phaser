@@ -24,9 +24,6 @@ export class Preloader extends Scene {
       progressBar.destroy();
       progressBox.destroy();
     });
-
-    // ここにゲームアセットの読み込みを追加
-    // 例: this.load.image("logo", "assets/logo.png");
   }
 
   create(): void {
