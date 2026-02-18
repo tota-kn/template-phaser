@@ -27,6 +27,33 @@ export class Game extends Scene {
       })
       .setOrigin(0.5);
 
+    // フルスクリーンボタン
+    const fsBtn = this.add
+      .text(width - 20, 20, "⛶", {
+        fontFamily: "Arial",
+        fontSize: "48px",
+        color: "#999999",
+      })
+      .setOrigin(1, 0)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        if (this.scale.isFullscreen) {
+          this.scale.stopFullscreen();
+        } else {
+          this.scale.startFullscreen();
+        }
+      });
+
+    this.scale.on("enterfullscreen", () => {
+      fsBtn.setText("✕");
+      (screen.orientation as any)?.lock?.("landscape")?.catch?.(() => {});
+    });
+
+    this.scale.on("leavefullscreen", () => {
+      fsBtn.setText("⛶");
+      screen.orientation?.unlock();
+    });
+
     // パーティクル用テクスチャを生成
     const gfx = this.make.graphics({ x: 0, y: 0 }, false);
     gfx.fillStyle(0xffffff);
