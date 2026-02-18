@@ -2,6 +2,7 @@
   "name": "template-phaser",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
