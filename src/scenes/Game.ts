@@ -49,11 +49,18 @@ export class Game extends Scene {
     this.scale.on("enterfullscreen", () => {
       fsBtn.setText("✕");
       (screen.orientation as any)?.lock?.("landscape")?.catch?.(() => {});
+      // モバイルブラウザはフルスクリーン遷移アニメーション中に
+      // サイズが確定しないため、遅延して複数回リフレッシュする
+      this.time.delayedCall(100, () => this.scale.refresh());
+      this.time.delayedCall(300, () => this.scale.refresh());
+      this.time.delayedCall(500, () => this.scale.refresh());
     });
 
     this.scale.on("leavefullscreen", () => {
       fsBtn.setText("⛶");
       screen.orientation?.unlock();
+      this.time.delayedCall(100, () => this.scale.refresh());
+      this.time.delayedCall(300, () => this.scale.refresh());
     });
 
     // パーティクル用テクスチャを生成
