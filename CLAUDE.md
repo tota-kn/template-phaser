@@ -56,3 +56,13 @@ GitHub Actions (`.github/workflows/deploy.yml`) が全ブランチへの push �
 
 - 設定ファイル: `wrangler.jsonc` (Workers Static Assets、SPA モード)
 - 必要な GitHub Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+
+## 試作: 推理アクション「鉄甲の番人」（proto/deduction-boss ブランチ）
+
+シーンフローは Boot → Preloader（テクスチャ生成）→ Prep（証言・観察記録・武器3つ選択）→ Battle → Result → Prep。
+
+- `src/data/weapons.ts` — 武器8種の定義
+- `src/data/boss.ts` — ボスの装甲状態遷移と `resolveHit`（武器×状態 → 反応・観察記録）、証言
+- `src/data/progress.ts` — 観察記録・挑戦履歴（localStorage）
+- `src/input/Controls.ts` — キーボードとゲームパッド（標準配置）をアクションに統合
+- `src/scenes/Game.ts` は削除済み
