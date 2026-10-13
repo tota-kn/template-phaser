@@ -19,12 +19,11 @@ Phaser 3 (v3.90) + TypeScript + Vite によるゲーム開発テンプレート�
 
 ### シーンフロー
 
-Boot → Preloader → Game の3段階で初期化される Phaser シーンベースアーキテクチャ。
+このブランチ（`proto/deduction-boss`）では Boot → Preloader → Prep → Battle → Result → Prep。詳細は下の「試作」節と `docs/design.md` を参照。
 
-- `src/main.ts` — エントリーポイント。Phaser.Game インスタンス生成、設定定義。新しいシーンは `config.scene` 配列に追加する
+- `src/main.ts` — エントリーポイント。Phaser.Game インスタンス生成、設定定義（ゲームパッド有効）。新しいシーンは `config.scene` 配列に追加する
 - `src/scenes/Boot.ts` — 最小限のアセット読み込み後 Preloader へ遷移
-- `src/scenes/Preloader.ts` — メインアセット読み込み（プログレスバーUI付き）、完了後 Game へ遷移。アセットの読み込みは `preload()` 内に追加する
-- `src/scenes/Game.ts` — メインゲームロジックの実装箇所
+- `src/scenes/Preloader.ts` — 画像アセットは使わず、試作用テクスチャをすべて Graphics で生成して Prep へ遷移
 
 ### シーン追加時の規約
 
@@ -58,6 +57,14 @@ GitHub Actions (`.github/workflows/deploy.yml`) が全ブランチへの push �
 - 必要な GitHub Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
 
 ## 試作: 推理アクション「鉄甲の番人」（proto/deduction-boss ブランチ）
+
+**設計の経緯・決定事項・未決事項は `docs/design.md` にまとめてある。作業前に必ず読むこと。**
+
+### このブランチでの注意
+
+- push 時は**コミットメッセージに `[skip ci]` を付ける**。付けないと Cloudflare に `deduction-boss` という Worker として公開デプロイされる（ユーザーはローカルで遊ぶ想定で、公開は依頼されていない）
+- 変更後は `pnpm build` で型チェックを通すこと
+- ゲームパッド入力は `Controls` 経由で扱い、シーンで直接キーやパッドを読まない
 
 シーンフローは Boot → Preloader（テクスチャ生成）→ Prep（証言・観察記録・武器3つ選択）→ Battle → Result → Prep。
 
