@@ -14,6 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
     fullscreenTarget: "game-container",
   },
+  input: { gamepad: true },
   scene: [Boot, Preloader, Game],
   physics: {
     default: "arcade",

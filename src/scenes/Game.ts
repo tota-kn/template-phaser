@@ -14,7 +14,10 @@ const SURFACE_COLORS: Record<SurfaceKind, { fill: number; stroke: number }> = {
 const PLAYER_COLOR = 0x4fc3f7;
 const STOCK_COLOR = 0xff9800;
 
-type ChargeSource = "key" | "pointer";
+type ChargeSource = "key" | "pointer" | "pad";
+
+// 標準配置のボタン番号: A/B=溜め, Y/Back=やり直し, LB/RB=部屋切替
+const PAD = { charge: [0, 1], retry: [3, 8], prev: 4, next: 5 };
 
 interface Records {
   time?: number;
@@ -38,6 +41,11 @@ export class Game extends Scene {
   private charging = false;
   private chargeSource: ChargeSource = "key";
   private chargeStart = 0;
+  private dragStart = { x: 0, y: 0 };
+  /** マウスは引っ張った反対へ飛ぶパチンコ式、タッチはドラッグした方向へ飛ぶ */
+  private dragSign = 1;
+  /** 溜めを始めた指。2本目の指が触れても向きが飛ばないようにする */
+  private dragPointer?: Phaser.Input.Pointer;
   private chargeStartedGrounded = false;
   private shownLevel = 0;
   private trail: { x: number; y: number }[] = [];
@@ -89,7 +97,7 @@ export class Game extends Scene {
       .setVisible(false);
 
     this.add
-      .text(VIEW.width - 30, 130, "移動: 方向キー/WASD  溜め: Space/Z 長押し  やり直し: R  部屋切替: N/P\nマウス・タッチ: 押している間溜める、指の方向へ飛ぶ", {
+      .text(VIEW.width - 30, 130, "移動: 方向キー/WASD  溜め: Space/Z 長押し  やり直し: R  部屋切替: N/P\nコントローラー: スティック/十字で向き、A/B長押しで溜め、Yでやり直し、LB/RBで部屋切替\nマウス: 押している間溜める、引っ張った反対へ飛ぶ  タッチ: ドラッグした方向へ飛ぶ", {
         fontFamily: FONT,
         fontSize: "20px",
         color: "#78909c",
@@ -97,6 +105,15 @@ export class Game extends Scene {
       })
       .setOrigin(1, 0)
       .setVisible(this.sys.game.device.os.desktop);
+    this.add
+      .text(VIEW.width - 30, 130, "どこでも押している間溜める、ドラッグした方向へ飛ぶ\n↺やり直し  »次の部屋  ⛶全画面", {
+        fontFamily: FONT,
+        fontSize: "26px",
+        color: "#78909c",
+        align: "right",
+      })
+      .setOrigin(1, 0)
+      .setVisible(!this.sys.game.device.os.desktop);
 
     this.setupButtons();
     this.setupInput();
@@ -118,6 +135,11 @@ export class Game extends Scene {
         if (this.chargeSource === "key") this.release();
       });
     }
+    // 全部離したときだけ最後の向きを保持する。向きを決めてから溜めキーだけ押せばよい
+    for (const name of ["W", "A", "S", "D", "UP", "DOWN", "LEFT", "RIGHT"]) {
+      this.keys[name].on("down", () => this.updateKeyDirection());
+      this.keys[name].on("up", () => this.updateKeyDirection());
+    }
     this.keys.ENTER.on("down", () => {
       if (this.world.cleared) this.loadLevel(this.levelIndex + 1);
     });
@@ -125,13 +147,27 @@ export class Game extends Scene {
     this.keys.N.on("down", () => this.loadLevel(this.levelIndex + 1));
     this.keys.P.on("down", () => this.loadLevel(this.levelIndex - 1));
 
+    const gp = this.input.gamepad!;
+    gp.on("down", (_pad: Phaser.Input.Gamepad.Gamepad, b: Phaser.Input.Gamepad.Button) => {
+      if (PAD.charge.includes(b.index)) this.startCharge("pad");
+      else if (PAD.retry.includes(b.index)) this.loadLevel(this.levelIndex);
+      else if (b.index === PAD.prev) this.loadLevel(this.levelIndex - 1);
+      else if (b.index === PAD.next) this.loadLevel(this.levelIndex + 1);
+    });
+    gp.on("up", (_pad: Phaser.Input.Gamepad.Gamepad, b: Phaser.Input.Gamepad.Button) => {
+      if (PAD.charge.includes(b.index) && this.chargeSource === "pad") this.release();
+    });
+
     this.input.addPointer(1);
-    this.input.on("pointerdown", (_p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
+    this.input.on("pointerdown", (p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (over.length > 0) return;
+      this.dragStart = { x: p.worldX, y: p.worldY };
+      this.dragSign = p.wasTouch ? 1 : -1;
+      if (!this.charging) this.dragPointer = p;
       this.startCharge("pointer");
     });
-    this.input.on("pointerup", () => {
-      if (this.chargeSource === "pointer") this.release();
+    this.input.on("pointerup", (p: Phaser.Input.Pointer) => {
+      if (this.chargeSource === "pointer" && p === this.dragPointer) this.release();
     });
   }
 
@@ -158,14 +194,29 @@ export class Game extends Scene {
   }
 
   private updateDirection(): void {
-    const p = this.world.player;
-    if (this.charging && this.chargeSource === "pointer") {
-      const ptr = this.input.activePointer;
-      const dx = ptr.worldX - p.x;
-      const dy = ptr.worldY - p.y;
-      if (Math.hypot(dx, dy) > 10) this.dir = snap8(dx, dy);
-      return;
+    this.updatePadDirection();
+    if (!this.charging || this.chargeSource !== "pointer") return;
+    // 押した位置からのドラッグで向きを決める。自機の位置に関係なく画面のどこでも操作できる
+    const ptr = this.dragPointer ?? this.input.activePointer;
+    const dx = (ptr.worldX - this.dragStart.x) * this.dragSign;
+    const dy = (ptr.worldY - this.dragStart.y) * this.dragSign;
+    if (Math.hypot(dx, dy) > 30) this.dir = snap8(dx, dy);
+  }
+
+  private updatePadDirection(): void {
+    const pad = this.input.gamepad?.pad1;
+    if (!pad) return;
+    // 十字キー優先、無ければ左スティック。ニュートラルでは最後の向きを保持する
+    const dx = (pad.right ? 1 : 0) - (pad.left ? 1 : 0);
+    const dy = (pad.down ? 1 : 0) - (pad.up ? 1 : 0);
+    if (dx !== 0 || dy !== 0) {
+      this.dir = { x: dx, y: dy };
+    } else if (Math.hypot(pad.leftStick.x, pad.leftStick.y) > 0.5) {
+      this.dir = snap8(pad.leftStick.x, pad.leftStick.y);
     }
+  }
+
+  private updateKeyDirection(): void {
     const k = this.keys;
     const dx = (k.RIGHT.isDown || k.D.isDown ? 1 : 0) - (k.LEFT.isDown || k.A.isDown ? 1 : 0);
     const dy = (k.DOWN.isDown || k.S.isDown ? 1 : 0) - (k.UP.isDown || k.W.isDown ? 1 : 0);
@@ -198,7 +249,7 @@ export class Game extends Scene {
       }
     }
 
-    this.world.update(dt);
+    this.world.update(dt * PHYS.timeScale);
     this.handleEvents();
 
     const p = this.world.player;

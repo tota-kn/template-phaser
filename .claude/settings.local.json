@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:vite.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(wc:*)"
+    ]
+  }
+}

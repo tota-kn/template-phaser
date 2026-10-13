@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Shot Puzzle Prototype</title>
     <style>
       body {
@@ -15,6 +15,27 @@
         height: 100vh;
         height: 100dvh;
         overflow: hidden;
+        /* 長押しで溜めるので、スクロール・ズーム・文字選択・長押しメニューを止める */
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      #rotate {
+        display: none;
+      }
+      @media (orientation: portrait) and (pointer: coarse) {
+        #rotate {
+          display: flex;
+          position: fixed;
+          inset: 0;
+          z-index: 1;
+          justify-content: center;
+          align-items: center;
+          background: #000;
+          color: #eceff1;
+          font: 24px sans-serif;
+        }
       }
       #game-container:fullscreen,
       #game-container:-webkit-full-screen {
@@ -29,6 +50,7 @@
   </head>
   <body>
     <div id="game-container"></div>
+    <div id="rotate">横向きにして遊んでください</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
